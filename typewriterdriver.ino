@@ -1,4 +1,4 @@
-
+// -*- mode: c++ -*-
 
 #define DCMOTOR 19
 #define PRINTHEAD 20
