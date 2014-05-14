@@ -1,4 +1,4 @@
-// -*- mode: c++ -*-
+
 
 #define DCMOTOR 19
 #define PRINTHEAD 20
@@ -76,8 +76,7 @@ void resetme() {
   stepTo(WHEEL_STEP, WHEEL_DIR, WHEEL_DELAY, 1, 96*2);
   stepTo(CAR_STEP, CAR_DIR, CAR_DELAY, 1, -40);
   stepTo(WHEEL_STEP, WHEEL_DIR, WHEEL_DELAY, 1, -96*2);
-
-  car=stepTo(CAR_STEP, CAR_DIR, CAR_DELAY, car, 10);
+  stepTo(CAR_STEP, CAR_DIR, CAR_DELAY, 1, 24);
 
   car=0;
   wheel=0;
@@ -117,7 +116,7 @@ void setup()
   pinMode(INDEX_IN, INPUT_PULLUP);
   digitalWrite(INDEX_IN, HIGH);
 
-  Serial.begin(9600);
+  Serial.begin(115200);
 //  resetme();
 }
 
@@ -181,12 +180,21 @@ void loop()
         strike();
         break;
       case 'q':
-        feed=stepTo(FEED_STEP, FEED_DIR, FEED_DELAY, feed, -20);
-        for(int i=0; i<10; i++) {    
+        feed=stepTo(FEED_STEP, FEED_DIR, FEED_DELAY, feed, -30);
+        for(int i=0; i<50; i++) {    
           wheel=stepTo(WHEEL_STEP, WHEEL_DIR, WHEEL_DELAY, wheel, 2);
           car=stepTo(CAR_STEP, CAR_DIR, CAR_DELAY, car, 12);
           strike();
         }
+        car=stepTo(CAR_STEP, CAR_DIR, CAR_DELAY, car, -car);
+        feed=stepTo(FEED_STEP, FEED_DIR, FEED_DELAY, feed, -30);
+        for(int i=0; i<50; i++) {    
+          wheel=stepTo(WHEEL_STEP, WHEEL_DIR, WHEEL_DELAY, wheel, 2);
+          car=stepTo(CAR_STEP, CAR_DIR, CAR_DELAY, car, 12);
+          strike();
+        }
+        car=stepTo(CAR_STEP, CAR_DIR, CAR_DELAY, car, -car);
+        feed=stepTo(FEED_STEP, FEED_DIR, FEED_DELAY, feed, -60);
         break;
       case 'x':
         Serial.print(stepsize);
