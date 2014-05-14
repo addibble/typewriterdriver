@@ -10,11 +10,15 @@
 // this is for driver #1
 #define WHEEL_STEP 5
 #define WHEEL_DIR 4
-#define WHEEL_DELAY 3000
+// microstep pin for wheel
+#define WHEEL_MS1 12
+#define WHEEL_DELAY 2000
 // driver controlling the paper feed (up-down)
 // this is for driver #2
 #define FEED_STEP 3
 #define FEED_DIR 2
+// enable pin for feed
+#define FEED_EN 11
 #define FEED_DELAY 3000
 // driver controlling the carriage (left-right)
 // this is for driver #3
@@ -26,6 +30,7 @@ int wheel=0;
 int car=0;
 int feed=0;
 unsigned int stepsize=1;
+unsigned int resetSteps=0;
 
 void strike() {
   digitalWrite(PRINTHEAD, HIGH);
@@ -58,11 +63,9 @@ int stepTo(int steppin, int dirpin, int del, int current, int steps) {
 }
 
 void resetme() {
-  unsigned int resetSteps=0;
+  digitalWrite(FEED_EN, LOW);
   for(int i=0; i<10000; i++) {
     if(digitalRead(INDEX_IN) == LOW) {
-      Serial.print(resetSteps);
-      Serial.println(" steps to reset");
       break;
     } else {
       stepTo(CAR_STEP, CAR_DIR, CAR_DELAY, 1, -1);
@@ -70,16 +73,19 @@ void resetme() {
     }
   }
 
-  stepTo(CAR_STEP, CAR_DIR, CAR_DELAY, 1, -6);
-  stepTo(WHEEL_STEP, WHEEL_DIR, WHEEL_DELAY, 1, -96*3);
-  stepTo(CAR_STEP, CAR_DIR, CAR_DELAY, 1, 50);
-  stepTo(WHEEL_STEP, WHEEL_DIR, WHEEL_DELAY, 1, 4);
-  stepTo(WHEEL_STEP, WHEEL_DIR, WHEEL_DELAY, 1, -4);
-  digitalWrite(WHEEL_DIR, LOW);
-  digitalWrite(CAR_DIR, LOW);
+  stepTo(WHEEL_STEP, WHEEL_DIR, WHEEL_DELAY, 1, 96*2);
+  stepTo(CAR_STEP, CAR_DIR, CAR_DELAY, 1, -40);
+  stepTo(WHEEL_STEP, WHEEL_DIR, WHEEL_DELAY, 1, -96*2);
+
+  car=stepTo(CAR_STEP, CAR_DIR, CAR_DELAY, car, 10);
+
   car=0;
   wheel=0;
   feed=0;
+
+  digitalWrite(WHEEL_DIR, LOW);
+  digitalWrite(CAR_DIR, LOW);
+  digitalWrite(FEED_EN, HIGH);
 }
 
 void setup()
@@ -103,9 +109,14 @@ void setup()
   digitalWrite(FEED_DIR, LOW);
   pinMode(FEED_STEP, OUTPUT);
   digitalWrite(FEED_STEP, LOW);
+  pinMode(FEED_EN, OUTPUT);
+  digitalWrite(FEED_EN, HIGH);
+  pinMode(WHEEL_MS1, OUTPUT);
+  digitalWrite(WHEEL_MS1, LOW);
   // pull the index pin high
   pinMode(INDEX_IN, INPUT_PULLUP);
   digitalWrite(INDEX_IN, HIGH);
+
   Serial.begin(9600);
 //  resetme();
 }
@@ -115,6 +126,7 @@ void loop()
 {
   b=Serial.read();
   if(b != -1) {
+    digitalWrite(FEED_EN, LOW);
     switch(b) {
       case 'h':
         car=stepTo(CAR_STEP, CAR_DIR, CAR_DELAY, car, -stepsize);
@@ -168,36 +180,25 @@ void loop()
       case 's':
         strike();
         break;
+      case 'q':
+        feed=stepTo(FEED_STEP, FEED_DIR, FEED_DELAY, feed, -20);
+        for(int i=0; i<10; i++) {    
+          wheel=stepTo(WHEEL_STEP, WHEEL_DIR, WHEEL_DELAY, wheel, 2);
+          car=stepTo(CAR_STEP, CAR_DIR, CAR_DELAY, car, 12);
+          strike();
+        }
+        break;
+      case 'x':
+        Serial.print(stepsize);
+        Serial.print(" ");
+        Serial.print(wheel);
+        Serial.print(" ");
+        Serial.print(car);
+        Serial.print(" ");
+        Serial.print(feed);
+        break;
     }
-    Serial.print("step size ");
-    Serial.print(stepsize);
-    Serial.print(" wheel pos ");
-    Serial.print(wheel);
-    Serial.print(" car pos ");
-    Serial.print(car);
-    Serial.print(" feed pos ");
-    Serial.print(feed);
-    Serial.println();
-    /*    Serial.print(b);
-    if(b >= 32 && b <= 126) {
-      spin_to(b);
-      strike();
-    }
-    */
+    Serial.println(".");
+    digitalWrite(FEED_EN, HIGH);
   }
-  /*
-  digitalWrite(dirpin, LOW);     // Set the direction.
-  delay(2000);
-  boolean led=false;
-  int ledpin=11;  
-  for (i = 0; i<200; i++)       // Iterate for 4000 microsteps.
-  {
-    led=!led;
-    digitalWrite(ledpin, led);
-
-    digitalWrite(steppin, LOW);  // This LOW to HIGH change is what creates the
-    digitalWrite(steppin, HIGH); // "Rising Edge" so the easydriver knows to when to step.
-    delayMicroseconds(400);      // This delay time is close to top speed for this
-  }                              // particular motor. Any faster the motor stalls.
-*/
 }
