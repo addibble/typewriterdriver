@@ -33,6 +33,12 @@ class AMTWriter:
         self.ser=Serial("/dev/ttyACM0", 9600, timeout=10)
         self.ser.flushInput()
         self.reset()
+        # type alphabet (non printable chars will be ignored)
+        self.wheeltypes=".ersaioctmlhpnbfgukvdyzqxjw/%1324567809$   #> <   @!] [ R'Q_OJG?D\"C-FE=BV&YATLSPZ*X+K)H(UIN;W:M,"
+
+        # number of types
+        self.ntypes=len(self.wheeltypes)
+
 
         # number of steps for one char movement
         # each axis
