@@ -73,9 +73,9 @@ void resetme() {
     }
   }
 
-  stepTo(WHEEL_STEP, WHEEL_DIR, WHEEL_DELAY, 1, 96*2);
+  stepTo(WHEEL_STEP, WHEEL_DIR, WHEEL_DELAY, 1, 100*2);
   stepTo(CAR_STEP, CAR_DIR, CAR_DELAY, 1, -40);
-  stepTo(WHEEL_STEP, WHEEL_DIR, WHEEL_DELAY, 1, -96*2);
+  stepTo(WHEEL_STEP, WHEEL_DIR, WHEEL_DELAY, 1, -100*2);
   stepTo(CAR_STEP, CAR_DIR, CAR_DELAY, 1, 24);
 
   car=0;
