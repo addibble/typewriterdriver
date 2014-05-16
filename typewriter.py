@@ -54,7 +54,15 @@ elif sel=="bidir":
     path=bidir
     
 #printer=SimulatedPrinter(*ps)
-printer=AMTWriter("/dev/ttyACM1")
+try:
+    printer=AMTWriter("/dev/ttyACM0")
+except IOError:
+    try:
+        printer=AMTWriter("/dev/ttyACM1")
+    except IOError:
+        printer=AMTWriter("/dev/ttyACM2")
+
+        
 pt=PrintingThread(printer, V[path])
 pt.start()
 while pt.isAlive():

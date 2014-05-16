@@ -11,6 +11,7 @@
 #define WHEEL_MOD 16
 #define SHIFT_CAR 0
 #define SHIFT_WHEEL 0
+
 // delay unit for all-axis command 
 #define STEP_DELAY 125
 
@@ -108,6 +109,7 @@ void all_move(
             digitalWrite(WHEEL_STEP, HIGH);
             move_wheel--;
             move_still=max(move_still, WHEEL_MOD);    
+>>>>>>> 1cf9ddf... Working with 10V stepper voltage and extra caps.
         }
         delayMicroseconds(STEP_DELAY);
 
