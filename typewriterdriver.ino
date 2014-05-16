@@ -1,9 +1,9 @@
-
-
+// -*- mode: c++ -*-
 #define DCMOTOR 19
 #define PRINTHEAD 20
 // pin for sensor on the typewriter which is continuous when the print head reaches a margin
 #define INDEX_IN 21
+
 // driver controlling the daisy wheel
 //#define WHEEL_STEP D0
 //#define WHEEL_DIR B7
