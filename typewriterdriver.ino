@@ -82,27 +82,36 @@ void all_move(
     move_car=abs(move_car);
     move_wheel=abs(move_wheel);
 
+    int16_t move_still=max(move_wheel*WHEEL_MOD, max(move_car*CAR_MOD, move_feed*FEED_MOD));
     uint16_t i=0;
-    while (move_feed || move_car || move_wheel) {
+    while (move_still) {
+        move_still--;
         if (move_feed && !(i%FEED_MOD)) {
             digitalWrite(FEED_STEP, HIGH);
             move_feed--;
+            move_still=max(move_still, FEED_MOD);    
         }
-        
-        // i+1, i+2 to try to spread the current
-        // load from the steppers a little bit in time
-        if (move_car && !((i+1)%CAR_MOD)) {
+        if (move_car && !(i%CAR_MOD)) {
             digitalWrite(CAR_STEP, HIGH);
             move_car--;
+            move_still=max(move_still, CAR_MOD);    
         }
-        if (move_wheel && !((i+2)%WHEEL_MOD)) {
+        if (move_wheel && !(i%WHEEL_MOD)) {
             digitalWrite(WHEEL_STEP, HIGH);
             move_wheel--;
+            move_still=max(move_still, WHEEL_MOD);    
         }
         delayMicroseconds(STEP_DELAY);
-        digitalWrite(FEED_STEP, LOW);
-        digitalWrite(CAR_STEP, LOW);
-        digitalWrite(WHEEL_STEP, LOW);
+
+        if (i%FEED_MOD >= FEED_MOD/2) {
+            digitalWrite(FEED_STEP, LOW);
+        }
+        if (i%CAR_MOD >= CAR_MOD/2) {
+            digitalWrite(CAR_STEP, LOW);
+        }
+        if (i%WHEEL_MOD >= WHEEL_MOD/2) {
+            digitalWrite(WHEEL_STEP, LOW);
+        }
         delayMicroseconds(STEP_DELAY);
         i++;
     }

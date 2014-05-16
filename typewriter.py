@@ -43,7 +43,6 @@ print "Greedy:", l, greedy_cost
 
 ps=(max(V, 0)+1)[1::-1]
 print "Print size:", ps
-printer=SimulatedPrinter(*ps)
 path=greedy
 if bidir_cost<greedy_cost:
     path=bidir
@@ -54,6 +53,8 @@ if sel=="greedy":
 elif sel=="bidir":
     path=bidir
     
+#printer=SimulatedPrinter(*ps)
+printer=AMTWriter("/dev/ttyACM1")
 pt=PrintingThread(printer, V[path])
 pt.start()
 while pt.isAlive():

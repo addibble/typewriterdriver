@@ -1,3 +1,4 @@
+from scipy import array
 from time import sleep
 
 # typewriter pos:
@@ -34,28 +35,28 @@ class SimulatedPrinter:
         
 class AMTWriter:
     def __init__(self, port="/dev/ttyACM0", reset=True):
-        if port!=None:
-            from serial import Serial
-            self.ser=Serial(port, 115200, timeout=10)
-            self.ser.flushInput()
-            if reset:
-                self.reset()
-            self.zero()
-            
-        from scipy import array
-        self.pos=array([0,0,0], int)
-
-
-
         # number of steps for one char movement
         # each axis
         # feed, carriage, wheel
-        self.step_multipliers=[30,12,2]
-        
-    def zero(self):
-        self.do([0,0,0], False)
+        self.step_multipliers=[-30,12,2]
+
         self.pos=array([0,0,0], int)
 
+        from serial import Serial
+        self.ser=Serial(port, 115200, timeout=30)
+        self.ser.flushInput()
+        if reset:
+            self.reset()
+        self.zero()
+            
+
+        
+    def zero(self):
+        self.do([self.pos[feed],
+                 0,
+                 self.pos[wheel]], False)
+        self.pos=array([0,0,0], int)
+                
     def reset(self):
         self.exchange("r")
         
@@ -67,11 +68,11 @@ class AMTWriter:
 
     def exchange(self, msg):
         #print "->", repr(msg)
-        for ch in msg:
-            self.ser.write(ch)
-            resp=self.ser.readline()
-            #print "response", repr(resp)
-            assert resp == ".\r\n"
+        self.ser.write(str(msg))
+            
+        resp=self.ser.readline()
+        #print "response", repr(resp)
+        assert resp == ".\r\n"
 
     def set_steps(self, n):
         self.exchange("0")
@@ -83,28 +84,30 @@ class AMTWriter:
                 n-=r
         
     def do(self, action, strike=True):
-        delta=action-self.pos
+        from scipy import int16
+        delta=array(action-self.pos, int16)
 
         delta*=self.step_multipliers
+        
+        # if delta[wheel]>ntypes/2:
+        #     delta[wheel]=-self.step_multipliers[wheel]*ntypes+delta[wheel]
+        # if delta[wheel]<-ntypes/2:
+        #     delta[wheel]=self.step_multipliers[wheel]*ntypes+delta[wheel]
 
         #print delta
-
-        if delta[wheel]>ntypes/2:
-            delta[wheel]=ntypes-delta[wheel]
-        if delta[wheel]<-ntypes/2:
-            delta[wheel]=ntypes+delta[wheel]
-
         cmd=bytearray("a\x00\x00\x00\x00\x00\x00")
         if strike:
             cmd[0]='A'
-        cmd[1:3]=d[ feed] & 0xff, d[ feed]>>8
-        cmd[3:5]=d[  car] & 0xff, d[  car]>>8
-        cmd[5:7]=d[wheel] & 0xff, d[wheel]>>8
+        cmd[1:3]=delta[    feed] & 0xff, (delta[      feed] &0xff00)>>8
+        cmd[3:5]=delta[carriage] & 0xff, (delta[  carriage] &0xff00)>>8
+        cmd[5:7]=delta[   wheel] & 0xff, (delta[     wheel] &0xff00)>>8
         self.exchange(cmd)
-
-        from scipy import array
         self.pos=array(action, int)
 
+    def do_(self, action, strike=True):
+        self.do_([action[0],   self.pos[1], self.pos[2]], False)
+        self.do_([self.pos[0], action[1],   self.pos[2]], False)
+        self.do_([self.pos[0], self.pos[1], action[2]  ], True)
 
 from threading import Thread, RLock
 
