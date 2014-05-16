@@ -88,23 +88,19 @@ class AMTWriter:
         delta*=self.step_multipliers
 
         #print delta
-        
-        for axis in range(3):
-            d=delta[axis]
 
-            # typewheel optimization
-            if axis==9:
-                if d>ntypes/2:
-                    d=ntypes-d
-                if d<-ntypes/2:
-                    d=ntypes+d
-            if d:
-                cmd="kjhl[]"[axis*2+(d>0)]
-                self.set_steps(abs(d))
-                self.exchange(cmd)
-                
+        if delta[wheel]>ntypes/2:
+            delta[wheel]=ntypes-delta[wheel]
+        if delta[wheel]<-ntypes/2:
+            delta[wheel]=ntypes+delta[wheel]
+
+        cmd=bytearray("a\x00\x00\x00\x00\x00\x00")
         if strike:
-            self.exchange("s")
+            cmd[0]='A'
+        cmd[1:3]=d[ feed] & 0xff, d[ feed]>>8
+        cmd[3:5]=d[  car] & 0xff, d[  car]>>8
+        cmd[5:7]=d[wheel] & 0xff, d[wheel]>>8
+        self.exchange(cmd)
 
         from scipy import array
         self.pos=array(action, int)

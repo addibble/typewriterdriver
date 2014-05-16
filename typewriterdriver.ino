@@ -1,8 +1,16 @@
 // -*- mode: c++ -*-
+
 #define DCMOTOR 19
 #define PRINTHEAD 20
 // pin for sensor on the typewriter which is continuous when the print head reaches a margin
 #define INDEX_IN 21
+
+// modulo for feed/car/wheel steps (speed factors)
+#define FEED_MOD 12
+#define CAR_MOD 8
+#define WHEEL_MOD 8
+// delay unit for all-axis command 
+#define STEP_DELAY 250
 
 // driver controlling the daisy wheel
 //#define WHEEL_STEP D0
@@ -60,6 +68,44 @@ int stepTo(int steppin, int dirpin, int del, int current, int steps) {
     delayMicroseconds(del);
   }
   return current+steps;
+}
+
+void all_move(
+    int16_t move_feed,
+    int16_t move_car,
+    int16_t move_wheel) {
+    digitalWrite(FEED_DIR, move_feed>0);
+    digitalWrite(CAR_DIR, move_car>0);
+    digitalWrite(WHEEL_DIR, move_wheel>0);
+    
+    move_feed=abs(move_feed);
+    move_car=abs(move_car);
+    move_wheel=abs(move_wheel);
+
+    uint16_t i=0;
+    while (move_feed || move_car || move_wheel) {
+        if (move_feed && !(i%FEED_MOD)) {
+            digitalWrite(FEED_STEP, HIGH);
+            move_feed--;
+        }
+        
+        // i+1, i+2 to try to spread the current
+        // load from the steppers a little bit in time
+        if (move_car && !((i+1)%CAR_MOD)) {
+            digitalWrite(CAR_STEP, HIGH);
+            move_car--;
+        }
+        if (move_wheel && !((i+2)%WHEEL_MOD)) {
+            digitalWrite(WHEEL_STEP, HIGH);
+            move_wheel--;
+        }
+        delayMicroseconds(STEP_DELAY);
+        digitalWrite(FEED_STEP, LOW);
+        digitalWrite(CAR_STEP, LOW);
+        digitalWrite(WHEEL_STEP, LOW);
+        delayMicroseconds(STEP_DELAY);
+        i++;
+    }
 }
 
 void resetme() {
@@ -120,9 +166,17 @@ void setup()
 //  resetme();
 }
 
+void read16(uint16_t *c) {
+    *c=Serial.read();
+    (*c)+=Serial.read()<<8;
+}
+
 signed int b;
 void loop()
 {
+    // All axis command parameters
+    bool do_strike=false;
+    int16_t move_feed, move_car, move_wheel;
   b=Serial.read();
   if(b != -1) {
     digitalWrite(FEED_EN, LOW);
@@ -196,6 +250,18 @@ void loop()
         car=stepTo(CAR_STEP, CAR_DIR, CAR_DELAY, car, -car);
         feed=stepTo(FEED_STEP, FEED_DIR, FEED_DELAY, feed, -60);
         break;
+        
+    case 'A':
+        do_strike=true;
+    case 'a':
+        read16((uint16_t*)&move_feed);
+        read16((uint16_t*)&move_car);
+        read16((uint16_t*)&move_wheel);
+        all_move(move_feed, move_car, move_wheel);
+        if (do_strike)
+            strike();
+        break;
+        
       case 'x':
         Serial.print(stepsize);
         Serial.print(" ");
