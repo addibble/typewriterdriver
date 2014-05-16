@@ -89,10 +89,10 @@ class AMTWriter:
 
         delta*=self.step_multipliers
         
-        # if delta[wheel]>ntypes/2:
-        #     delta[wheel]=-self.step_multipliers[wheel]*ntypes+delta[wheel]
-        # if delta[wheel]<-ntypes/2:
-        #     delta[wheel]=self.step_multipliers[wheel]*ntypes+delta[wheel]
+        if delta[wheel]>ntypes/2:
+            delta[wheel]=-self.step_multipliers[wheel]*ntypes+delta[wheel]
+        if delta[wheel]<-ntypes/2:
+            delta[wheel]=self.step_multipliers[wheel]*ntypes+delta[wheel]
 
         #print delta
         cmd=bytearray("a\x00\x00\x00\x00\x00\x00")
@@ -103,12 +103,13 @@ class AMTWriter:
         cmd[5:7]=delta[   wheel] & 0xff, (delta[     wheel] &0xff00)>>8
         self.exchange(cmd)
         self.pos=array(action, int)
+        #sleep(.2)
 
     def do_(self, action, strike=True):
         self.do_([action[0],   self.pos[1], self.pos[2]], False)
         self.do_([self.pos[0], action[1],   self.pos[2]], False)
         self.do_([self.pos[0], self.pos[1], action[2]  ], True)
-
+        
 from threading import Thread, RLock
 
 class PrintingThread(Thread):

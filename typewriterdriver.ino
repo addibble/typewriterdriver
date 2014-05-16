@@ -6,11 +6,13 @@
 #define INDEX_IN 21
 
 // modulo for feed/car/wheel steps (speed factors)
-#define FEED_MOD 12
-#define CAR_MOD 8
-#define WHEEL_MOD 8
+#define FEED_MOD 24
+#define CAR_MOD 16
+#define WHEEL_MOD 16
+#define SHIFT_CAR 0
+#define SHIFT_WHEEL 0
 // delay unit for all-axis command 
-#define STEP_DELAY 250
+#define STEP_DELAY 125
 
 // driver controlling the daisy wheel
 //#define WHEEL_STEP D0
@@ -82,38 +84,46 @@ void all_move(
     move_car=abs(move_car);
     move_wheel=abs(move_wheel);
 
-    int16_t move_still=max(move_wheel*WHEEL_MOD, max(move_car*CAR_MOD, move_feed*FEED_MOD));
-    uint16_t i=0;
+    uint16_t move_still=max(
+        move_feed ? FEED_MOD : 0,
+        max(
+            move_car ? CAR_MOD+SHIFT_CAR : 0,
+            move_wheel ? WHEEL_MOD+SHIFT_WHEEL : 0
+            ));
+
+    int feed=0, car=-SHIFT_CAR, wheel=-SHIFT_WHEEL;
     while (move_still) {
         move_still--;
-        if (move_feed && !(i%FEED_MOD)) {
+        if (move_feed && !feed) {
             digitalWrite(FEED_STEP, HIGH);
             move_feed--;
             move_still=max(move_still, FEED_MOD);    
         }
-        if (move_car && !(i%CAR_MOD)) {
+        if (move_car && !car) {
             digitalWrite(CAR_STEP, HIGH);
             move_car--;
             move_still=max(move_still, CAR_MOD);    
         }
-        if (move_wheel && !(i%WHEEL_MOD)) {
+        if (move_wheel && !wheel) {
             digitalWrite(WHEEL_STEP, HIGH);
             move_wheel--;
             move_still=max(move_still, WHEEL_MOD);    
         }
         delayMicroseconds(STEP_DELAY);
 
-        if (i%FEED_MOD >= FEED_MOD/2) {
+        if (feed >= FEED_MOD/2)
             digitalWrite(FEED_STEP, LOW);
-        }
-        if (i%CAR_MOD >= CAR_MOD/2) {
+
+        if (car >= CAR_MOD/2) 
             digitalWrite(CAR_STEP, LOW);
-        }
-        if (i%WHEEL_MOD >= WHEEL_MOD/2) {
+
+        if (wheel >= WHEEL_MOD/2)
             digitalWrite(WHEEL_STEP, LOW);
-        }
+
         delayMicroseconds(STEP_DELAY);
-        i++;
+        feed=(feed+1)%FEED_MOD;
+        car=(car+1)%CAR_MOD;
+        wheel=(wheel+1)%WHEEL_MOD;
     }
 }
 
