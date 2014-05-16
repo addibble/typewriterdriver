@@ -6,9 +6,9 @@
 #define INDEX_IN 21
 
 // modulo for feed/car/wheel steps (speed factors)
-#define FEED_MOD 24
-#define CAR_MOD 16
-#define WHEEL_MOD 16
+#define FEED_MOD 12
+#define CAR_MOD 12
+#define WHEEL_MOD 12
 #define SHIFT_CAR 0
 #define SHIFT_WHEEL 0
 
@@ -109,7 +109,6 @@ void all_move(
             digitalWrite(WHEEL_STEP, HIGH);
             move_wheel--;
             move_still=max(move_still, WHEEL_MOD);    
->>>>>>> 1cf9ddf... Working with 10V stepper voltage and extra caps.
         }
         delayMicroseconds(STEP_DELAY);
 

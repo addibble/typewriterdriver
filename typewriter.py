@@ -65,7 +65,11 @@ except IOError:
         
 pt=PrintingThread(printer, V[path])
 pt.start()
+
+from time import time
+start=time()
 while pt.isAlive():
     from time import sleep
     sleep(.1)
-
+end=time()
+print "duration", end-start, "s"

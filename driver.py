@@ -12,7 +12,8 @@ wheeltypes=",.ersaioctmlhpnbfgukvdyzqxjw/%1324567809${|}#>~<\x7f\x80\x81@!]^[`R'
 # number of types
 ntypes=len(wheeltypes)
 
-cost=[90, 36, 4] # for each feed, carriage, wheel movement
+# for each feed, carriage, wheel movement
+cost=array([30,12,2], int) * [1,1,1] 
 
 class SimulatedPrinter:
     def __init__(self, X=78, Y=30):
