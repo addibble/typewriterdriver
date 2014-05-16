@@ -6,7 +6,7 @@ from time import sleep
 feed, carriage, wheel=range(3)
 
 # type alphabet (non printable chars will be ignored)
-wheeltypes=",.ersaioctmlhpnbfgukvdyzqxjw/%1324567809$   #> <   @!] [ R'Q_OJG?D\"C-FE=BV&YATLSPZ*X+K)H(UIN;W:M"
+wheeltypes=",.ersaioctmlhpnbfgukvdyzqxjw/%1324567809${|}#>~<\0127\0128\0129@!]^[`R'Q_OJG?D\"C-FE=BV&YATLSPZ*X+K)H(UIN;W:M"
 
 # number of types
 ntypes=len(wheeltypes)
