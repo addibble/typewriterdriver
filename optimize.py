@@ -158,15 +158,14 @@ def path_optimizer(V, path):
         log.info("Path cost greedy %d" % path_cost(dm, greedy))
         yield
 
-    WIDTH=6
     
-    log.info("Local optimizing bidirectional with length %d" % WIDTH)
-    local_opt_maxfirst(dm, path, WIDTH)
+    log.info("Local optimizing bidirectional with length %d" % opt_win_width)
+    local_opt_maxfirst(dm, path, opt_win_width)
     yield
 
     if fast_system:
-        log.info("Local optimizing greedy with length %d" % WIDTH)
-        local_opt_maxfirst(dm, greedy, WIDTH)
+        log.info("Local optimizing greedy with length %d" % opt_win_width)
+        local_opt_maxfirst(dm, greedy, opt_win_width)
         yield
 
     bidir_cost=path_cost(dm, path)
