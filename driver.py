@@ -1,5 +1,10 @@
 from scipy import array
 from time import sleep
+import sys
+import logging
+log=logging.getLogger('optimize')
+
+from config import *
 
 # typewriter pos:
 # [feed, carriage, wheel]
@@ -16,23 +21,39 @@ ntypes=len(wheeltypes)
 cost=array([30,12,2], int) * [1,1,1] 
 
 class SimulatedPrinter:
-    def __init__(self, X=78, Y=30):
+    def __init__(self, X=78, Y=30, quiet=False, outfile=sys.stdout):
+        log.info("New simulated printer [%d, %d]" % (X, Y))
         self.X, self.Y=X, Y
+        self.quiet=quiet
         self.zero()
-        
+        self.outfile=outfile
+
+    def __del__(self):
+        self.outfile.close()
+
     def do(self, action):
         f, c, w=action
         char=wheeltypes[w]
-        self.sheet[f][c]=char
+        try:
+            self.sheet[f][c]=char
+        except:
+            print "out of range", f, c, w, self.X, self.Y
+            raise
 
-        print "%3d %3d %3d %c" % (f, c, w, char)
-        for l in self.sheet:
-            print l
-        print
-        sleep(.05)
+        if not self.quiet:
+            print>>self.outfile, "%3d %3d %3d %c" % (f, c, w, char)
+            for l in self.sheet:
+                print>>self.outfile, l
+            print>>self.outfile
+            self.outfile.flush()
+        sleep(.01)
 
     def zero(self):
+        log.info("Zeroing printer.")
         self.sheet=[bytearray(" "*self.X) for i in range(self.Y)]
+
+    def eject_page(self):
+        log.info("Page %s done." % [self.X, self.Y])
         
 class AMTWriter:
     def __init__(self, port="/dev/ttyACM0", reset=True):
@@ -50,7 +71,8 @@ class AMTWriter:
             self.reset()
         self.zero()
             
-
+    def eject_page(self):
+        self.do([70, 0, 0], False)
         
     def zero(self):
         self.do([self.pos[feed],
@@ -115,6 +137,8 @@ from threading import Thread, RLock
 
 class PrintingThread(Thread):
     def __init__(self, printer, cmds):
+        log.info("New printing thread, printer %s, len %d" %
+                 (printer, len(cmds)))
         self.cmds=cmds
         self.printer=printer
         self.lock=RLock()
@@ -124,12 +148,22 @@ class PrintingThread(Thread):
     def run(self):
         printer=self.printer
         printer.zero()
+        from time import time, sleep
+        from os import path
+        
+        wait=time()
+        log.info("Waiting for load page button.")
+        while path.getmtime(job_dir+"load_new_page")<wait:
+            sleep(1.0)
+        log.info("Load page button press detected. Starting to print.")
+        
         for i, step in enumerate(self.cmds):
             printer.do(step)
             self.lock.acquire()
             self.state=i
             self.lock.release()
-            
+        printer.eject_page()
+        
     def progress(self):
         self.lock.acquire()
         res=self.state
