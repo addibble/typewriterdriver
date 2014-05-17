@@ -1,0 +1,12 @@
+ABCDABCDABCDABCDABCDABCDABCDABCDABCDABCDABCDABCDABCDABCDABCDABCD
+CDABCDABCDABCDABCDABCDABCDABCDABCDABCDABCDABCDABCDABCDABCDABCDAB
+
+AAA                       A
+BBB                       A
+CCC                       A
+DDD                       A
+                         AAA
+                        AAAAA
+                       AAAAAAA
+                      AAAAAAAAA
+ 
