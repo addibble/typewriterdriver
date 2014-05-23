@@ -18,6 +18,7 @@ class PrintJob:
         self.fn=fn
         logging.info("New print job %d" % prio)
         logging.info("Reading input '%s'" % fn)
+        self.date=asctime()
         self.prio=prio
         self.indata=open(fn).readlines()
         logging.info("done.")
@@ -59,9 +60,9 @@ if __name__=="__main__":
         print "AMT WRITER STATS"
         print "----------------"
         for pj in queue:
-            print "%10d %10d" % (pj.prio, pj.l)
+            print "%10d %10d %s %s" % (pj.prio, pj.l, pj.fn, pj.date)
         if pt:
-            print "Printing %d, %5.2f" % (queue[0].prio, 100.*pt.progress())
+            print "Printing %s, %5.2f" % (queue[0].fn, 100.*pt.progress())
         print "\n"
     
     otime=time()
