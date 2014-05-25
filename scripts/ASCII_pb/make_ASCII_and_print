@@ -1,0 +1,9 @@
+#!/bin/bash
+cd /home/pi/temp_image/
+convert -modulate 150 -brightness-contrast 10 -rotate -90 photobooth*.jpg - | jp2a --background=light --width=60 - > ASCII_image.txt
+suffix=$(date +%H%M%S)
+cp ASCII_image.txt /home/pi/ASCII_images/ASCII_${suffix}.txt
+date > /home/pi/ASCII_images/ASCII_${suffix}F.txt
+cat /home/pi/ASCII_images/ASCII_${suffix}.txt /home/pi/scripts/ASCII_pb/AMT_footer >> /home/pi/ASCII_images/ASCII_${suffix}F.txt
+mv /home/pi/ASCII_images/ASCII_${suffix}F.txt /home/pi/typewriterdriver/jobs/ASCII_${suffix}F.txt
+rm *.jpg

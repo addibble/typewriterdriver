@@ -1,0 +1,7 @@
+#!/bin/sh
+sleep 6
+sudo python /home/pi/scripts/ASCII_pb/ASCII_photobooth.py &
+cd /home/pi/typewriterdriver/jobs
+for i in *.in_queue; do x=`echo $i|cut -d. -f1,2`; mv $i $x; done
+#su -c "cd /home/pi/typewriterdriver/; screen -S typewriter ./typewriter.py" pi
+su -c "cd /home/pi/typewriterdriver/; screen -d -m -S typewriter ./typewriter.py" pi
