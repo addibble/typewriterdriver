@@ -151,11 +151,11 @@ class PrintingThread(Thread):
         from time import time, sleep
         from os import path
         
-        wait=time()
-        log.info("Waiting for load page button.")
-        while path.getmtime(job_dir+"load_new_page")<wait:
-            sleep(1.0)
-        log.info("Load page button press detected. Starting to print.")
+        #wait=time()
+        #log.info("Waiting for load page button.")
+        #while path.getmtime(job_dir+"load_new_page")<wait:
+        #    sleep(1.0)
+        #log.info("Load page button press detected. Starting to print.")
         
         for i, step in enumerate(self.cmds):
             printer.do(step)
